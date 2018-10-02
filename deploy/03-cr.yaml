@@ -1,0 +1,8 @@
+apiVersion: "snapshotoperator.openshift.io/v1alpha1"
+kind: "SnapshotController"
+metadata:
+  name: "snapshot-controller"
+spec:
+  controllerImage: "quay.io/external_storage/snapshot-controller"
+  provisionerImage: "quay.io/external_storage/snapshot-provisioner"
+  storageClassName: "snapshot-promotion"
