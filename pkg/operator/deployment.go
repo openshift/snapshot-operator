@@ -19,7 +19,7 @@ package operator
 import (
 	"github.com/openshift/snapshot-operator/pkg/apis/snapshotoperator/v1alpha1"
 
-	"github.com/sirupsen/logrus"
+	_ "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,8 +53,6 @@ func newSnapshotControllerDeployment(cr *v1alpha1.SnapshotController) *appsv1.De
 		"operator-managed": "true",
 	}
 
-	logrus.Infof("Using controller image: %s", controllerImage)
-	logrus.Infof("Using provisioner image: %s", provisionerImage)
 	dep := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",

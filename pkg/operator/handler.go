@@ -42,30 +42,25 @@ func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 		}
 
 		// New SnapshotController CR: create RBAC and the deployment
-		logrus.Info("Creating service account")
 		//err := createObjectIfNotExist(newServiceAccount(cr))
 		err := sdk.Create(newServiceAccount(cr))
 		if err != nil {
 			return err
 		}
-		logrus.Info("Creating ClusterRole")
 		err = createObjectIfNotExist(newClusterRole(cr))
 		if err != nil {
 			return err
 		}
-		logrus.Info("Creating ClusterRoleBinding")
 		err = createObjectIfNotExist(newClusterRoleBinding(cr))
 		if err != nil {
 			return err
 		}
-		logrus.Info("Creating StorageClass")
 		if cr.Spec.StorageClassName != "" {
 			err = createObjectIfNotExist(newStorageClass(cr))
 			if err != nil {
 				return err
 			}
 		}
-		logrus.Info("Creating Deployment")
 		err = createObjectIfNotExist(newSnapshotControllerDeployment(cr))
 		if err != nil {
 			return err
