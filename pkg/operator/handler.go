@@ -32,18 +32,17 @@ type Handler struct {
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
-	logrus.Info("Called event handler!")
 	switch cr := event.Object.(type) {
 	case *v1alpha1.SnapshotController:
 		// Ignore the delete event since the garbage collector will clean up all secondary resources for the CR
 		// All secondary resources must have the CR set as their OwnerReference for this to be the case
 		if event.Deleted {
+			logrus.Info("SnapshotController CR deleted")
 			return nil
 		}
 
 		// New SnapshotController CR: create RBAC and the deployment
-		//err := createObjectIfNotExist(newServiceAccount(cr))
-		err := sdk.Create(newServiceAccount(cr))
+		err := createObjectIfNotExist(newServiceAccount(cr))
 		if err != nil {
 			return err
 		}

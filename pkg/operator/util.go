@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // objects can have more than one ownerRef, potentially
@@ -48,9 +49,8 @@ func ownerRefFrom(cr *v1alpha1.SnapshotController) *metav1.OwnerReference {
 	return nil
 }
 
-// helper function to create an API object: wiil just log a warning if
-// the object already exists
-func createObjectIfNotExist(o sdk.Object) error {
+func createObject(o sdk.Object) error {
+	logrus.Infof("Creating new %s", runtime.Object(o).GetObjectKind().GroupVersionKind().Kind)
 	err := sdk.Create(o)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
@@ -62,5 +62,24 @@ func createObjectIfNotExist(o sdk.Object) error {
 		}
 	}
 
+	return nil
+}
+
+// helper function to create an API object: wiil just log a warning if
+// the object already exists
+func createObjectIfNotExist(o sdk.Object) error {
+	existingObject := runtime.Object(o).DeepCopyObject()
+	err := sdk.Get(existingObject)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			// Didn't find the object but for some weird reason
+			logrus.Warnf("failed to look for object: %v", err)
+			return err
+		} else {
+			// Didn't find the object because it does not exist
+			return createObject(o)
+		}
+	}
+	// Object exists: TODO: what now?
 	return nil
 }
