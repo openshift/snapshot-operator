@@ -19,8 +19,8 @@ package operator
 import (
 	"github.com/openshift/snapshot-operator/pkg/apis/snapshotoperator/v1alpha1"
 
+	"github.com/golang/glog"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
-	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -50,14 +50,14 @@ func ownerRefFrom(cr *v1alpha1.SnapshotController) *metav1.OwnerReference {
 }
 
 func createObject(o sdk.Object) error {
-	logrus.Infof("Creating new %s", runtime.Object(o).GetObjectKind().GroupVersionKind().Kind)
+	glog.Infof("Creating new %s", runtime.Object(o).GetObjectKind().GroupVersionKind().Kind)
 	err := sdk.Create(o)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
-			logrus.Warnf("failed to create snapshot controller/provisioner deployment (will try to continue): %v", err)
+			glog.Warningf("failed to create snapshot controller/provisioner deployment (will try to continue): %v", err)
 
 		} else {
-			logrus.Errorf("failed to create snapshot controller/provisioner deployment: %v", err)
+			glog.Errorf("failed to create snapshot controller/provisioner deployment: %v", err)
 			return err
 		}
 	}
@@ -73,7 +73,7 @@ func createObjectIfNotExist(o sdk.Object) error {
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			// Didn't find the object but for some weird reason
-			logrus.Warnf("failed to look for object: %v", err)
+			glog.Warningf("failed to look for object: %v", err)
 			return err
 		} else {
 			// Didn't find the object because it does not exist

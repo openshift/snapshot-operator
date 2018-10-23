@@ -169,6 +169,15 @@
   version = "1.0.1"
 
 [[projects]]
+  name = "github.com/openshift/installer"
+  packages = [
+    "pkg/ipnet",
+    "pkg/types"
+  ]
+  revision = "6e32febb718f32c43efa3099007b96d218ef2ec6"
+  version = "v0.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
@@ -179,6 +188,12 @@
     "version"
   ]
   revision = "2a3e6bc9f2ade1a9c962ed91ee8b889e0782c94a"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -538,6 +553,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "22a3131aff0c3b6f0a97bc22324996cfa5dabe1f626a90facb0daf29bbe0d52a"
+  inputs-digest = "981bcc1197050e98882e2ceb103b2eeff823bb1638951e4f28106d0aad49585a"
   solver-name = "gps-cdcl"
   solver-version = 1

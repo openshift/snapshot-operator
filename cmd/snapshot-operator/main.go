@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"runtime"
 	"time"
 
@@ -26,17 +27,19 @@ import (
 	k8sutil "github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 
-	"github.com/sirupsen/logrus"
+	"github.com/golang/glog"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 func printVersion() {
-	logrus.Infof("Go Version: %s", runtime.Version())
-	logrus.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
-	logrus.Infof("operator-sdk Version: %v", sdkVersion.Version)
+	glog.Infof("Go Version: %s", runtime.Version())
+	glog.Infof("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
+	glog.Infof("operator-sdk Version: %v", sdkVersion.Version)
 }
 
 func main() {
+	flag.Set("logtostderr", "true")
+	flag.Parse()
 	printVersion()
 
 	//sdk.ExposeMetricsPort()
@@ -45,10 +48,10 @@ func main() {
 	kind := "SnapshotController"
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
-		logrus.Fatalf("failed to get watch namespace: %v", err)
+		glog.Errorf("failed to get watch namespace: %v", err)
 	}
 	resyncPeriod := time.Duration(5) * time.Second
-	logrus.Infof("Watching %s, %s, %s, %d", resource, kind, namespace, resyncPeriod)
+	glog.Infof("Watching %s, %s, %s, %d", resource, kind, namespace, resyncPeriod)
 	sdk.Watch(resource, kind, namespace, resyncPeriod)
 	sdk.Handle(operator.NewHandler())
 	sdk.Run(context.TODO())

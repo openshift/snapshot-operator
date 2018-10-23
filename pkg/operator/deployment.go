@@ -19,7 +19,8 @@ package operator
 import (
 	"github.com/openshift/snapshot-operator/pkg/apis/snapshotoperator/v1alpha1"
 
-	_ "github.com/sirupsen/logrus"
+	"github.com/golang/glog"
+	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +33,7 @@ const (
 
 // newSnapshotController pod creates a new pod using the images in the
 // SnapshotController custom resource spec
-func newSnapshotControllerDeployment(cr *v1alpha1.SnapshotController) *appsv1.Deployment {
+func newSnapshotControllerDeployment(cr *v1alpha1.SnapshotController, cfg Config) *appsv1.Deployment {
 	var controllerImage string
 	var provisionerImage string
 
@@ -87,7 +88,74 @@ func newSnapshotControllerDeployment(cr *v1alpha1.SnapshotController) *appsv1.De
 			},
 		},
 	}
+	// Add cloudprovider commandline flag
+	if cfg.cloudProvider != "" {
+		for _, container := range dep.Spec.Template.Spec.Containers {
+			container.Args = []string{"-cloudprovider", cfg.cloudProvider}
+		}
+	}
+	// Need a secret with credentials for AWS
+	if cfg.cloudProvider == "aws" {
+		if cfg.awsSecret != "" {
+			if cfg.awsSecretNamespace != cr.Namespace {
+				// Copy the AWS secret to the CR namespace so it's acessible by the pods
+				_, err := copySecret(cfg.awsSecret, cfg.awsSecretNamespace, cr.Namespace)
+				if err != nil {
+					glog.Warning("Error copying AWS secret to deployment namespace: %v", err)
+					return nil
+				}
+			}
+			for _, container := range dep.Spec.Template.Spec.Containers {
+				container.Env = []corev1.EnvVar{
+					{
+						Name: "AWS_ACCESS_KEY_ID",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: cfg.awsSecret},
+								Key:                  "access-key-id",
+							},
+						},
+					},
+					{
+						Name: "AWS_SECRET_ACCESS_KEY",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: cfg.awsSecret},
+								Key:                  "secret-access-key",
+							},
+						},
+					},
+				}
+			}
+		} else {
+			glog.Warning("AWS cloud provider requested but AWS credentials not found")
+		}
+
+	}
 	addOwnerRef(dep, ownerRefFrom(cr))
 
 	return dep
+}
+
+func copySecret(secretName string, fromNamespace string, toNamespace string) (*corev1.Secret, error) {
+	secret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: fromNamespace,
+		},
+	}
+	err := sdk.Get(secret)
+	if err != nil {
+		return nil, err
+	}
+	secret.Namespace = toNamespace
+	err = sdk.Create(secret)
+	if err != nil {
+		return nil, err
+	}
+	return secret, nil
 }

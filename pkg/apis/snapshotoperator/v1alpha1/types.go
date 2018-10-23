@@ -62,6 +62,17 @@ type SnapshotControllerSpec struct {
 	// Group that would be allowed to use volume snapshots
 	// Optional, default empty
 	Group string `json: "group",omitempty`
+
+	// Name of a secret that stores the AWS credentials. These will be passed
+	// to the controller and provisioner to use
+	// It is expected to  contain two values named
+	// secret-access-key and access-key-id
+	// Optional, default empty
+	AWSSecretName string `json: "awsSecretName",omitempty`
+	// Where to look for the ssecret, if empty, the SnapshotController CR
+	// namespace would be used
+	// Optional, default empty
+	AWSSecretNamespace string `json: "awsSecretNamespace",omitempty`
 }
 
 type SnapshotControllerStatus struct {
