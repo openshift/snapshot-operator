@@ -53,6 +53,12 @@ func NewHandler() sdk.Handler {
 	return handler
 }
 
+type Config struct {
+	cloudProvider      string
+	awsSecretNamespace string
+	awsSecret          string
+}
+
 type Handler struct {
 	cfg Config
 }
